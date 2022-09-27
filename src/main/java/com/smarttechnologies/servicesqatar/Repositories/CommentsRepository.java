@@ -9,13 +9,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 
+
 @Repository
-
-
-public interface CommentsRepository extends JpaRepository<CommentsRepository,Long> {
-
-    List<Comments> findBypostId(long postId);
-
+public interface CommentsRepository extends JpaRepository<Comments, Long> {
     List<Comments> findByPost(Post post);
 
     List<Comments> findAllByUser(User user);

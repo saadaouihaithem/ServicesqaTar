@@ -1,83 +1,60 @@
 package com.smarttechnologies.servicesqatar.Controller;
 
-import com.smarttechnologies.servicesqatar.Entities.Post;
-import com.smarttechnologies.servicesqatar.Services.PostService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.smarttechnologies.servicesqatar.Services.AuthService;
+import com.smarttechnologies.servicesqatar.Services.CommentService;
+import com.smarttechnologies.servicesqatar.Services.RefreshTokenService;
+import com.smarttechnologies.servicesqatar.dto.*;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 public class AuthResource {
 
 
     @RestController
-    @RequestMapping("/Posts")
+    @AllArgsConstructor
+    @RequestMapping("/api/auth")
     public class PostResource {
 
 
-        private final PostService postService;
-        @Autowired
-        public PostResource(PostService postService) {
-            this.postService = postService;
+
+        private final AuthService authService;
+        private final RefreshTokenService refreshTokenService;
+
+        @PostMapping
+        public ResponseEntity<Void> createComment(@RequestBody CommentsDto CommentsDto) {
+            CommentService.save(CommentsDto);
+            return new ResponseEntity<>(CREATED);
+        }
+        @PostMapping("/signup")
+        public ResponseEntity<String> signup(@RequestBody RegisterRequest registerRequest) {
+            authService.signup(registerRequest);
+            return new ResponseEntity<>("User Registration Successful",
+                    OK);
         }
 
-        @GetMapping("")
-        public ResponseEntity<List<Post>> getAllPost(HttpServletRequest request) {
-            Long  userId = (Long) request.getAttribute("userId");
-            Long  postId = (Long) request.getAttribute("postId");
-            List<Post> post = postService.fetchPostById(postId,userId);
-            return new ResponseEntity<>(post, HttpStatus.OK);
+        @GetMapping("accountVerification/{token}")
+        public ResponseEntity<String> verifyAccount(@PathVariable String token) {
+            authService.verifyAccount(token);
+            return new ResponseEntity<>("Account Activated Successfully", OK);
         }
 
-
-        @GetMapping("{postId}")
-        public ResponseEntity<Post> getCategoryById(HttpServletRequest request,
-                                                    @PathVariable("postId") Long  postId) {
-            Long  userId = (Long) request.getAttribute("userId");
-            Post post = (Post) postService.fetchPostById(userId, postId);
-            return new ResponseEntity<>(post, HttpStatus.OK);
+        @PostMapping("/login")
+        public AuthenticationResponse login(@RequestBody LoginRequest loginRequest) {
+            return authService.login(new LoginRequest());
         }
 
-
-        @PostMapping("")
-        public ResponseEntity<Post> addPost(HttpServletRequest request,
-                                            @RequestBody Map<String, Object> categoryMap) {
-            Long userId = (Long)request.getAttribute("userId");
-            String title = (String) categoryMap.get("title");
-            String description = (String) categoryMap.get("description");
-            Long postId = (Long) categoryMap.get("postId");
-            Post post=postService.addPost(userId,postId, title, description);
-            return new ResponseEntity<>(post, HttpStatus.CREATED);
+        @PostMapping("/refresh/token")
+        public AuthenticationResponse refreshTokens( @RequestBody RefreshTokenRequest refreshTokenRequest) {
+            return authService.refreshToken(refreshTokenRequest);
         }
 
-
-
-        @PutMapping(path="{postId}")
-        public ResponseEntity<Map<String, Boolean>> updatePost(HttpServletRequest request,
-                                                               @PathVariable("postId") Long  postId,
-                                                               @RequestBody Post post) {
-
-
-            Long userId = (Long) request.getAttribute("userId");
-            postService.updatePost(userId, postId,post);
-            Map<String, Boolean> map = new HashMap<>();
-            map.put("success", true);
-            return new ResponseEntity<>(map, HttpStatus.OK);
-        }
-
-        @DeleteMapping("{postId}")
-        public ResponseEntity<Map<String,Boolean>> deleteCategory(HttpServletRequest request,
-                                                                  @PathVariable("postId") Long postId) {
-            long  userId = (Long) request.getAttribute("userId");
-            postService.removeCategoryWithAllOperation(userId,postId);
-            Map<String, Boolean> map = new HashMap<>();
-            map.put("success", true);
-            return new ResponseEntity<>(map,HttpStatus.OK);
-
+        @PostMapping("/logout")
+        public ResponseEntity<String> logout(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+            refreshTokenService.deleteRefreshToken(refreshTokenRequest.getRefreshToken());
+            return ResponseEntity.status(OK).body("Refresh Token Deleted Successfully!!");
         }
 }}

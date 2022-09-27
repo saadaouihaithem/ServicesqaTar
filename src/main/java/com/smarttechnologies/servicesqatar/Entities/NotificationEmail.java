@@ -1,47 +1,22 @@
 package com.smarttechnologies.servicesqatar.Entities;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 
-@Entity
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class NotificationEmail {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private Long id;
     private String subject;
-        private String recipient;
-        private String body;
-
-
-    public NotificationEmail(String subject, String recipient, String body) {
-        this.subject = subject;
-        this.recipient = recipient;
-        this.body = body;
-    }
-
-    public NotificationEmail() {
-
-    }
-
-
-
-
-
-
-
-
-
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-
-
-
-
+    private String recipient;
+    private String body;
 }
+
+
+
 
